@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sampler · 데이터 후처리</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">R&amp;D DATA TOOL</div>
+      <h1>Sampler</h1>
+      <p>시계열·반복 계산 데이터를 빠르게 확인하고, 필요한 간격으로 샘플링하거나 집계합니다.</p>
+      <div class="steps" aria-label="사용 순서">
+        <span><b>1</b> 형태 선택</span><i></i><span><b>2</b> 파일 업로드</span><i></i>
+        <span><b>3</b> 그래프 확인</span><i></i><span><b>4</b> 처리·다운로드</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel intro">
+      <div>
+        <div class="section-number">01</div>
+        <h2>데이터 준비</h2>
+        <p>Transient는 시간 열을 자동 탐색하고, Steady는 첫 번째 열을 iteration으로 사용합니다.</p>
+      </div>
+      <div class="controls-grid">
+        <fieldset>
+          <legend>데이터 형태</legend>
+          <label class="type-card selected">
+            <input type="radio" name="dataType" value="transient" checked>
+            <span class="type-icon">T</span><span><strong>Transient data</strong><small>time – value</small></span>
+          </label>
+          <label class="type-card">
+            <input type="radio" name="dataType" value="steady">
+            <span class="type-icon">I</span><span><strong>Steady data</strong><small>iteration – value</small></span>
+          </label>
+        </fieldset>
+
+        <div>
+          <label class="field-label" for="fileInput">데이터 파일</label>
+          <div class="input-tabs" role="tablist" aria-label="데이터 입력 방법">
+            <button type="button" class="input-tab active" data-input-mode="file" role="tab" aria-selected="true">파일 업로드</button>
+            <button type="button" class="input-tab" data-input-mode="paste" role="tab" aria-selected="false">텍스트 붙여넣기</button>
+          </div>
+          <label class="dropzone" id="dropzone" for="fileInput">
+            <input id="fileInput" type="file" accept=".csv,.dat,.out,.txt">
+            <span class="upload-icon">↑</span>
+            <strong id="fileTitle">파일을 끌어 놓거나 클릭하세요</strong>
+            <small id="fileHelp">CSV, DAT, OUT, TXT · 최대 100 MB</small>
+          </label>
+          <div class="paste-pane hidden" id="pastePane">
+            <textarea id="pasteInput" rows="8" spellcheck="false" placeholder="열 이름과 데이터를 함께 붙여넣으세요.&#10;&#10;예시:&#10;Time,Value&#10;0,10.2&#10;1,10.5"></textarea>
+            <div class="paste-meta"><span>CSV, 탭, 공백 구분 데이터를 지원합니다.</span><span id="pasteSize">0 KB / 5 MB</span></div>
+          </div>
+          <button id="previewButton" class="primary" disabled>데이터 불러오기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="previewPanel">
+      <div class="section-head">
+        <div><div class="section-number">02</div><h2>그래프 미리보기</h2></div>
+        <div class="dataset-meta"><span id="rowCount">0 rows</span><span id="unitBadge">unit</span></div>
+      </div>
+      <div class="axis-controls">
+        <label>X축<select id="xColumn"></select></label>
+        <label>Y축<select id="yColumn"></select></label>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart" role="img" aria-label="업로드 데이터 그래프"></canvas>
+        <div id="chartEmpty" class="chart-empty hidden">선택한 열에 그릴 수 있는 숫자 데이터가 없습니다.</div>
+      </div>
+      <p class="preview-note" id="previewNote"></p>
+    </section>
+
+    <section class="panel hidden" id="processPanel">
+      <div class="section-head">
+        <div><div class="section-number">03</div><h2>후처리 설정</h2></div>
+      </div>
+      <div class="method-grid" role="radiogroup" aria-label="처리 방법">
+        <label class="method-card selected"><input type="radio" name="method" value="sampling" checked><b>Sampling</b><span>지정 간격마다 원본 행 선택</span></label>
+        <label class="method-card"><input type="radio" name="method" value="average"><b>Average</b><span>구간별 숫자 열 평균</span></label>
+        <label class="method-card"><input type="radio" name="method" value="min"><b>Minimum</b><span>구간별 숫자 열 최솟값</span></label>
+        <label class="method-card"><input type="radio" name="method" value="max"><b>Maximum</b><span>구간별 숫자 열 최댓값</span></label>
+        <label class="method-card"><input type="radio" name="method" value="convert"><b>Unit Convert</b><span>전체 행의 단위만 변환</span></label>
+      </div>
+
+      <div class="conversion-block">
+        <div class="conversion-head">
+          <div>
+            <div class="conversion-title">단위 변환 <span>선택사항</span></div>
+            <p>여러 숫자 열을 한 번에 변환할 수 있으며, Sampling·집계 결과에도 함께 적용됩니다.</p>
+          </div>
+          <button type="button" id="addConversionButton" class="secondary">＋ 변환 추가</button>
+        </div>
+        <div id="conversionEmpty" class="conversion-empty">
+          풍량(CMS·CMM·CMH), 온도(K·degC), 습도(소수·%), 시간(ns·µs·ms·sec·min·hr)를 지원합니다.
+        </div>
+        <div id="conversionRules" class="conversion-rules"></div>
+      </div>
+
+      <div class="process-controls">
+        <label id="intervalField"><span>처리 간격</span><input id="interval" value="1s" placeholder="예: 100ms, 1s"></label>
+        <label id="modeField"><span>샘플링 기준</span><select id="mode"><option value="after">목표 시점 이후 첫 행</option><option value="nearest">목표 시점과 가장 가까운 행</option></select></label>
+        <button id="downloadButton" class="download">처리 데이터 다운로드 <span>↓</span></button>
+      </div>
+      <p class="method-help" id="methodHelp">첫 행부터 지정한 간격마다 데이터를 선택하며 원본 파일 형식을 유지합니다. 위 단위변환 규칙이 있으면 선택된 행에도 함께 적용됩니다.</p>
+    </section>
+
+    <div id="status" class="status hidden" role="status" aria-live="polite"></div>
+  </main>
+  <footer>Sampler v1.2.0 · 파일은 서버에 저장되지 않으며 처리 요청 동안에만 사용됩니다.</footer>
+  <script src="app.js"></script>
+</body>
+</html>

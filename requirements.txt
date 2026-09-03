@@ -1,0 +1,5 @@
+# Add shared project dependencies here.
+# Example:
+# pandas
+# openpyxl
+

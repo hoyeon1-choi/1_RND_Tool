@@ -1,0 +1,30 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Local files produced by tools
+logs/*
+!logs/.gitkeep
+tools/*/output/*
+!tools/*/output/.gitkeep
+tools/*/input/*
+!tools/*/input/.gitkeep
+data/*
+!data/.gitkeep
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
